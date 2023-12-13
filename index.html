@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz with Timer</title>
+    <style>
+        body {
+            background-image: url('2.jpg');
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-attachment: fixed;
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        #quiz-container {
+            width: 60%;
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 5px solid black;
+            border-radius: 10px;
+            background: linear-gradient(to right, #2193b0, #6dd5ed);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);       
+        }
+
+        h1 {
+            background: linear-gradient(to right, #cc2b5e, #753a88);
+            -webkit-background-clip: text;
+            color: transparent;
+            text-align: center;
+            text-shadow: 2px 2px 1px white;
+        }
+
+        p {
+            color: black;
+            text-align: center;
+        }
+
+        #start-quiz-btn, #next-btn, #view-score-btn, #restart-btn {
+            padding: 10px;
+            background: white;
+            color: black;
+            margin: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+            border-radius: 5px;
+            border: none;
+            width: 100%;
+            font-size: 16px;
+        }
+
+        #next-btn, #view-score-btn, #restart-btn {
+            display: none;
+        }
+
+        #start-quiz-btn {
+            background-color: green;
+        }
+
+        #start-quiz-btn:hover {
+            background-color: lightgreen;
+            color: white;
+        }
+
+        #next-btn:hover, #view-score-btn:hover, #restart-btn:hover {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        #question-container {
+            color: black;
+            font-size: 24px;
+            font-family: 'Times New Roman', Times, serif;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #options-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+        }
+
+        #options-container button {
+            padding: 12px;
+            margin: 5px;
+            background: lightgreen;
+            color: black;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+            border-radius: 5px;
+            border: none;
+            width: 48%;
+            font-size: 14px;
+        }
+
+        #options-container button:hover {
+            background-color: lightyellow;
+            color: black;
+        }
+
+        #timer {
+            color: black;
+            font-size: 16px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div id="quiz-container">
+    <h1>TIME ATTACK QUIZ</h1>
+    <button id="start-quiz-btn" onclick="startQuiz()">Start Quiz</button>
+    <div id="question-container" style="display:none;"></div>
+    <div id="options-container" style="display:none;"></div>
+    <button id="next-btn" onclick="nextQuestion()" style="display:none;">NEXT QUESTION</button>
+    <button id="view-score-btn" onclick="viewScore()" style="display:none;">VIEW SCORE</button>
+    <button id="restart-btn" onclick="restartQuiz()" style="display:none;">RESTART QUIZ</button>
+    <p id="timer" style="display:none;">Time Remaining: <span id="time">10</span> seconds</p>
+</div>
+
+<script>
+    const questions = [
+        {
+            question: "What does HTML stand for?",
+            options: ["Hyper Text Markup Language", "Home Tool Markup Language", "Hyperlinks and Text Markup Language", "High Text Markup Language"],
+            correctAnswer: "Hyper Text Markup Language"
+        },
+        {
+            question: "Who is making the Web standards?",
+            options: ["Google", "Microsoft", "The World Wide Web Consortium", "Mozilla"],
+            correctAnswer: "The World Wide Web Consortium"
+        },
+        {
+            question: "Choose the correct HTML element for the largest heading:",
+            options: ["<heading>", "<h6>", "<h1>", "<head>"],
+            correctAnswer: "<h1>"
+        },
+        {
+            question: "Which of these elements are all <table> elements?",
+            options: ["<table><tr><td>", "<thead><body><tr>", "<table><head><tfoot>", "<table><tr><tt>"],
+            correctAnswer: "<table><tr><td>"
+        },
+        {
+            question: "How can you make a numbered list?",
+            options: ["<ol>", "<list>", "<dl>", "<ul>"],
+            correctAnswer: "<ol>"
+        }
+    ];
+
+    let currentQuestion = 0;
+    let timeRemaining = 10;
+    let correctAnswers = 0;
+    let timerInterval;
+
+    function startQuiz() {
+        document.getElementById("start-quiz-btn").style.display = "none";
+        document.getElementById("question-container").style.display = "block";
+        document.getElementById("options-container").style.display = "block";
+        document.getElementById("next-btn").style.display = "block";
+        document.getElementById("timer").style.display = "block";
+        displayQuestion();
+    }
+
+    const questionTime = 10;
+
+    function startTimer() {
+        timeRemaining = questionTime;
+        document.getElementById("time").innerText = timeRemaining;
+
+        timerInterval = setInterval(() => {
+            timeRemaining--;
+
+            if (timeRemaining >= 0) {
+                document.getElementById("time").innerText = timeRemaining;
+            } else {
+                clearInterval(timerInterval);
+                nextQuestion();
+            }
+        }, 1000);
+    }
+
+    function displayQuestion() {
+        const questionContainer = document.getElementById("question-container");
+        const optionsContainer = document.getElementById("options-container");
+
+        questionContainer.innerText = questions[currentQuestion].question;
+        optionsContainer.innerHTML = "";
+
+        questions[currentQuestion].options.forEach((option, index) => {
+            const button = document.createElement("button");
+            button.innerText = option;
+            button.addEventListener("click", () => checkAnswer(option));
+            optionsContainer.appendChild(button);
+        });
+
+        startTimer();
+    }
+
+    function checkAnswer(selectedAnswer) {
+        clearInterval(timerInterval);
+
+        if (selectedAnswer === questions[currentQuestion].correctAnswer) {
+            correctAnswers++;
+        }
+
+        currentQuestion++;
+        if (currentQuestion < questions.length) {
+            displayQuestion();
+        } else {
+            document.getElementById("view-score-btn").style.display = "block";
+            document.getElementById("restart-btn").style.display = "block";
+            alert("Quiz completed!");
+        }
+    }
+
+    function nextQuestion() {
+        timeRemaining = 10;
+
+        if (currentQuestion < questions.length - 1) {
+            currentQuestion++;
+            displayQuestion();
+        } else {
+            document.getElementById("view-score-btn").style.display = "block";
+            document.getElementById("restart-btn").style.display = "block";
+            alert("Quiz completed!");
+        }
+    }
+
+    function viewScore() {
+        alert(`Your score: ${correctAnswers} out of ${questions.length}`);
+    }
+
+    function restartQuiz() {
+        currentQuestion = 0;
+        correctAnswers = 0;
+        document.getElementById("start-quiz-btn").style.display = "block";
+        document.getElementById("question-container").style.display = "none";
+        document.getElementById("options-container").style.display = "none";
+        document.getElementById("next-btn").style.display = "none";
+        document.getElementById("view-score-btn").style.display = "none";
+        document.getElementById("restart-btn").style.display = "none";
+        document.getElementById("timer").style.display = "none";
+    }
+</script>
+
+</body>
+</html>
